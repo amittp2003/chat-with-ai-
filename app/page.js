@@ -1,95 +1,115 @@
+"use client";
 import Image from "next/image";
 import styles from "./page.module.css";
-
+import { useState } from "react";
 export default function Home() {
+  //adding states
+  const [message, setMessage] = useState("");
+  const [response, setResponse] = useState("");
+  const [streaming, setStreaming] = useState("");
+  const [loading, setLoading] = useState("");// spinner
+  const [streamResponse, setStreamResponse] = useState("");
+
+  //method to collect data and send to backend
+  const handleChat = async() =>{
+    setLoading(true)
+    setResponse("")
+
+    try{
+      const res = await fetch("/api/chat",{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({message})
+    })
+
+    const data = await res.json()
+    setResponse(data.response)
+    }catch(error){
+      setResponse("Error: "+ error.message)
+    }
+    setLoading(false)
+  };
+
+  const handleStreamChat = async() =>{
+    setStreaming(true)
+    setStreamResponse("")
+
+    try{
+      const res = await fetch("/api/chat-stream",{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({message})
+    })
+    
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+
+    
+    while(true){
+      const {done, value} = await reader.read()
+      if(done) break;
+      const chunk = decoder.decode(value)
+      const lines= chunk.split("\n")
+      for(const line of lines){
+        console.log(line);
+        
+        if(line.startsWith("data: ")){
+          const data = JSON.parse(line.slice(6))
+          setStreamResponse((prev) => prev + data.content)
+        }
+      }
+    }
+  }catch(error){
+    setStreamResponse("Error: "+ error.message)
+    }
+    setStreaming(false)
+  }
   return (
     <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+      <h1>AI with nextjs</h1>
+      <div>
+        <textarea value={message}
+          onChange={(e) => setMessage(e.target.value)} //e event
+          placeholder = "Enter your message"
+          rows = {4}
+          style = {{width: "100%", marginBottom: "10px"}}
         />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+        <div>
+          <button 
+          onClick={handleChat}
+          style={{padding: "10px 20px", backgroundColor: "orange"}}>
+          {loading ? "loading..." : "chat"}
+          </button>
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div
+        style={{
+          border:"1px solid #ccc",
+          padding: "10px",
+          whiteSpace: "pre-wrap",
+          fontSize: "28px"
+        }}>
+          {response}
+        </div>
+        <button 
+          onClick={handleStreamChat}
+          style={{padding: "10px 20px", backgroundColor: "green", margin:"5px"}}>
+          {streaming ? "streaming..." : "stream chat"}
+          </button>
+        <div
+        style={{
+          border:"1px solid #ccc",
+          padding: "10px",
+          whiteSpace: "pre-wrap",
+          fontSize: "28px"
+        }}>
+          {streamResponse}
+        </div>
+      </div>
     </div>
   );
 }
