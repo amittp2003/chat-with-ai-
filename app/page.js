@@ -69,47 +69,39 @@ export default function Home() {
     }
     setStreaming(false)
   }
-  return (
+  return( 
     <div className={styles.page}>
-      <h1>AI with nextjs</h1>
-      <div>
-        <textarea value={message}
-          onChange={(e) => setMessage(e.target.value)} //e event
-          placeholder = "Enter your message"
-          rows = {4}
-          style = {{width: "100%", marginBottom: "10px"}}
-        />
-        <div>
-          <button 
-          onClick={handleChat}
-          style={{padding: "10px 20px", backgroundColor: "orange"}}>
-          {loading ? "loading..." : "chat"}
-          </button>
-        </div>
-        <div
-        style={{
-          border:"1px solid #ccc",
-          padding: "10px",
-          whiteSpace: "pre-wrap",
-          fontSize: "28px"
-        }}>
-          {response}
-        </div>
-        <button 
-          onClick={handleStreamChat}
-          style={{padding: "10px 20px", backgroundColor: "green", margin:"5px"}}>
-          {streaming ? "streaming..." : "stream chat"}
-          </button>
-        <div
-        style={{
-          border:"1px solid #ccc",
-          padding: "10px",
-          whiteSpace: "pre-wrap",
-          fontSize: "28px"
-        }}>
-          {streamResponse}
-        </div>
-      </div>
-    </div>
-  );
+  <h1 className={styles.title}>Chat with me!</h1>
+  <p className={styles.subtitle}>
+    You can ask any questions as your wish but I am good at coding questions!
+  </p>
+
+  <textarea
+    value={message}
+    onChange={(e) => setMessage(e.target.value)}
+    placeholder="Enter your message"
+    rows={4}
+    className={styles.textarea}
+  />
+
+  <div>
+    <button
+      onClick={handleChat}
+      className={`${styles.button} ${styles.chatButton}`}
+    >
+      {loading ? "loading..." : "chat"}
+    </button>
+  </div>
+
+  <div className={styles.responseBox}>{response}</div>
+
+  <button
+    onClick={handleStreamChat}
+    className={`${styles.button} ${styles.streamButton}`}
+  >
+    {streaming ? "streaming..." : "stream chat"}
+  </button>
+
+  <div className={styles.responseBox}>{streamResponse}</div>
+</div>)
 }
